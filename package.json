@@ -8,8 +8,8 @@
     "prepare": "node_modules/@babel/cli/bin/babel.js src --out-dir lib --ignore **/__tests__,**/jest.setup.js",
     "lint": "standard",
     "lint:fix": "standard --fix",
-    "serverless:validate": "sls package --stage $SLS_STAGE",
-    "serverless:deploy": "sls deploy --stage $SLS_STAGE"
+    "serverless:validate": "sls package --stage",
+    "serverless:deploy": "sls deploy --stage"
   },
   "keywords": [
     "Serverless",

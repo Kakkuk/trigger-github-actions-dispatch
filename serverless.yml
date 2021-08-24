@@ -11,6 +11,12 @@ plugins:
   - "@kakkuk/serverless-aws-apigateway-documentation"
 
 custom:
+  documentation:
+    api:
+      info:
+        version: "1"
+        title: "trigger-github-actions-dispatch"
+        description: "Trigger Github Actions Repository Dispatches with a proxied webhook"
 
 provider:
   lambdaHashingVersion: 20201221

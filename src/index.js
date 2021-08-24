@@ -33,8 +33,8 @@ function apiGatewayResponse ({ body = {}, statusCode = 200 }) {
  *
  * @async
  * @param {Object} body
- * @param {string} [method='POST']
- * @param {string} token
+ * @param {string} [method=POST]
+ * @param {string} token - Github Authorization token
  * @param {string} url
  * @returns {ApiGatewayResponse}
  */
@@ -67,6 +67,43 @@ async function apiRequest ({ body, method = 'POST', token, url }) {
 }
 
 /**
+ * @typedef {Object} GithubTag
+ * @property {string} ref
+ */
+
+/**
+ * Fetch all the tags for a repository and return the latest one
+ *
+ * @private
+ * @async
+ * @param {string} owner - Github repository owner
+ * @param {string} repo - Github repository name
+ * @param {string} token - Github Authorization token
+ * @returns {Promise<GithubTag>} - Resolves to the latest Github Tag
+ */
+async function fetchLastTag ({ owner, repo, token }) {
+  console.log('fetchLastTag', { owner, repo })
+  const url = `${apiRoot}/repos/${owner}/${repo}/git/refs/tags`
+  const options = {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json', Authorization: token }
+  }
+
+  let tags
+  try {
+    const response = await nodeFetch(url, options)
+    tags = await response.json()
+  } catch (error) {
+    console.error('fetchLastTag: Error', error)
+    const { statusCode = 500 } = error
+    return apiGatewayResponse({ body: error, statusCode })
+  }
+
+  const lastTag = tags.pop()
+  return lastTag
+}
+
+/**
  * See: https://docs.github.com/en/rest/reference/repos#create-a-repository-dispatch-event--parameters
  *
  * @typedef {Object} ApiGatewayEventRepositoryDispatch
@@ -84,7 +121,6 @@ async function apiRequest ({ body, method = 'POST', token, url }) {
  * RepositoryDispatch handler
  * Proxy a [repository_dispatch event](https://docs.github.com/en/rest/reference/repos#create-a-repository-dispatch-event) request
  *
- * @async
  * @param {ApiGatewayEventRepositoryDispatch} event - The API Gateway event
  * @throws {Error} - Error hitting the Github API, proxied from {apiRequest}
  * @returns {Promise<ApiGatewayResponse>} - Resolves to API Gateway formatted response
@@ -126,14 +162,17 @@ export function repositoryDispatchHandler (event) {
 
 /**
  * WorkflowDispatch handler
- * Proxy a [workflow_dispatch event](https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event) request
+ * Proxy a [workflow_dispatch event](https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event)
+ * request for the specified `ref`.
+ *
+ * If the `ref` is `refs/tags` then the event will be triggered for the last tag.
  *
  * @async
  * @param {ApiGatewayEventWorkflowDispatch} event - The API Gateway event
  * @throws {Error} - Error hitting the Github API, proxied from {apiRequest}
  * @returns {Promise<ApiGatewayResponse>} - Resolves to API Gateway formatted response
  */
-export function workflowDispatchHandler (event) {
+export async function workflowDispatchHandler (event) {
   console.log('workflowDispatchHandler Request received')
   const {
     body: rawBody,
@@ -142,13 +181,19 @@ export function workflowDispatchHandler (event) {
     queryStringParameters: { ref }
   } = event
 
-  console.log('workflowDispatchHandler', { body: rawBody, owner, repo, workflowId, ref })
+  console.log('workflowDispatchHandler', { body: rawBody, owner, ref, repo, workflowId })
+
+  let finalRef = ref
+  if (ref === 'refs/tags') {
+    const tag = await fetchLastTag({ owner, repo, token })
+    finalRef = tag.ref
+  }
 
   const url = `${apiRoot}/repos/${owner}/${repo}/actions/workflows/${workflowId}/dispatches`
   const inputs = JSON.parse(rawBody)
   console.log('workflowDispatchHandler, discarding supplied inputs', inputs)
 
-  const body = { inputs: {}, ref }
+  const body = { inputs: {}, ref: finalRef }
 
   return apiRequest({ body, token, url })
 }

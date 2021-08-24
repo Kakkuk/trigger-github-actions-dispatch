@@ -10,7 +10,9 @@ Proxy a <a href="https://docs.github.com/en/rest/reference/repos#create-a-reposi
 </dd>
 <dt><a href="#workflowDispatchHandler">workflowDispatchHandler(event)</a> ⇒ <code><a href="#ApiGatewayResponse">Promise.&lt;ApiGatewayResponse&gt;</a></code></dt>
 <dd><p>WorkflowDispatch handler
-Proxy a <a href="https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event">workflow_dispatch event</a> request</p>
+Proxy a <a href="https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event">workflow_dispatch event</a>
+request for the specified <code>ref</code>.</p>
+<p>If the <code>ref</code> is <code>refs/tags</code> then the event will be triggered for the last tag.</p>
 </dd>
 </dl>
 
@@ -18,6 +20,8 @@ Proxy a <a href="https://docs.github.com/en/rest/reference/actions#create-a-work
 
 <dl>
 <dt><a href="#ApiGatewayResponse">ApiGatewayResponse</a> : <code>Object</code></dt>
+<dd></dd>
+<dt><a href="#GithubTag">GithubTag</a> : <code>Object</code></dt>
 <dd></dd>
 <dt><a href="#ApiGatewayEventRepositoryDispatch">ApiGatewayEventRepositoryDispatch</a> : <code>Object</code></dt>
 <dd><p>See: <a href="https://docs.github.com/en/rest/reference/repos#create-a-repository-dispatch-event--parameters">https://docs.github.com/en/rest/reference/repos#create-a-repository-dispatch-event--parameters</a></p>
@@ -34,12 +38,12 @@ Make a request agains the Github API
 
 **Kind**: global function  
 
-| Param | Type | Default |
-| --- | --- | --- |
-| body | <code>Object</code> |  | 
-| [method] | <code>string</code> | <code>&quot;&#x27;POST&#x27;&quot;</code> | 
-| token | <code>string</code> |  | 
-| url | <code>string</code> |  | 
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| body | <code>Object</code> |  |  |
+| [method] | <code>string</code> | <code>&quot;POST&quot;</code> |  |
+| token | <code>string</code> |  | Github Authorization token |
+| url | <code>string</code> |  |  |
 
 <a name="repositoryDispatchHandler"></a>
 
@@ -62,7 +66,10 @@ Proxy a [repository_dispatch event](https://docs.github.com/en/rest/reference/re
 
 ## workflowDispatchHandler(event) ⇒ [<code>Promise.&lt;ApiGatewayResponse&gt;</code>](#ApiGatewayResponse)
 WorkflowDispatch handler
-Proxy a [workflow_dispatch event](https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event) request
+Proxy a [workflow_dispatch event](https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event)
+request for the specified `ref`.
+
+If the `ref` is `refs/tags` then the event will be triggered for the last tag.
 
 **Kind**: global function  
 **Returns**: [<code>Promise.&lt;ApiGatewayResponse&gt;</code>](#ApiGatewayResponse) - - Resolves to API Gateway formatted response  
@@ -88,6 +95,16 @@ Proxy a [workflow_dispatch event](https://docs.github.com/en/rest/reference/acti
 | headers | <code>Object</code> | 
 | headers['Content-Type' | <code>string</code> | 
 | body | <code>string</code> | 
+
+<a name="GithubTag"></a>
+
+## GithubTag : <code>Object</code>
+**Kind**: global typedef  
+**Properties**
+
+| Name | Type |
+| --- | --- |
+| ref | <code>string</code> | 
 
 <a name="ApiGatewayEventRepositoryDispatch"></a>
 
