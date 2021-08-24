@@ -1,0 +1,110 @@
+service: trigger-github-actions-dispatch
+
+configValidationMode: error
+
+variablesResolutionMode: 20210326
+
+useDotenv: true
+
+plugins:
+  - serverless-reqvalidator-plugin
+  - "@kakkuk/serverless-aws-apigateway-documentation"
+
+custom:
+
+provider:
+  lambdaHashingVersion: 20201221
+  name: aws
+  runtime: nodejs14.x
+  timeout: 30
+  logs:
+    restApi: true
+  tracing:
+    apiGateway: true
+    lambda: true
+  region: ${env:AWS_REGION}
+  deploymentBucket:
+    name: ${env:AWS_BUCKET}
+    maxPreviousDeploymentArtifacts: 10
+  tags:
+    client: ${env:CLIENT}
+
+functions:
+  repositoryDispatch:
+    handler: lib/index.repositoryDispatchHandler
+    name: RepositoryDispatch
+    description: Trigger Github Actions Repository Dispatches with a proxied webhook
+    tags:
+      client: ${env:CLIENT}
+    events:
+      - http:
+          path: /{owner}/{repo}/dispatches
+          method: post
+          reqValidatorName: githubActionsDispatchTrigger
+          documentation:
+            summary: Trigger repository_dispatch with a proxied webhook
+            headers:
+              Authorization:
+                type: string
+                description: Github Authorization token
+                required: true
+            pathParams:
+              - name: owner
+                description: Github repository owner
+                type: string
+                required: true
+              - name: repo
+                description: Github repository name
+                type: string
+                required: true
+            queryParams:
+              - name: eventType
+                description: Repository Dispatch `event_type`
+                type: string
+                required: true
+  workflowDispatch:
+    handler: lib/index.workflowDispatchHandler
+    name: WorkflowDispatch
+    description: Trigger Github Actions Workflow Dispatches with a proxied webhook
+    tags:
+      client: ${env:CLIENT}
+    events:
+      - http:
+          path: /{owner}/{repo}/actions/workflows/{workflowId}/dispatches
+          method: post
+          reqValidatorName: githubActionsDispatchTrigger
+          documentation:
+            summary: Trigger workflow_dispatch with a proxied webhook
+            headers:
+              Authorization:
+                type: string
+                description: Github Authorization token
+                required: true
+            pathParams:
+              - name: owner
+                description: Github repository owner
+                type: string
+                required: true
+              - name: repo
+                description: Github repository name
+                type: string
+                required: true
+              - name: workflowId
+                description: The ID of the workflow
+                type: string
+                required: true
+            queryParams:
+              - name: ref
+                description: The git reference for the workflow
+                type: string
+                required: true
+
+resources:
+  Resources:
+    githubActionsDispatchTrigger:
+      Type: "AWS::ApiGateway::RequestValidator"
+      Properties:
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ValidateRequestBody: false
+        ValidateRequestParameters: true

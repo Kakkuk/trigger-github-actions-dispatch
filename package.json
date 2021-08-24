@@ -1,0 +1,71 @@
+{
+  "name": "trigger-github-actions-dispatch",
+  "version": "0.0.1",
+  "description": "Trigger Github Actions Dispatches with a proxied webhook",
+  "main": "lib/index.js",
+  "scripts": {
+    "documentation": "jsdoc2md --files \"./src/**/*.js\" > README.md",
+    "prepare": "node_modules/@babel/cli/bin/babel.js src --out-dir lib --ignore **/__tests__,**/jest.setup.js",
+    "lint": "standard",
+    "lint:fix": "standard --fix",
+    "serverless:validate": "sls package --stage $SLS_STAGE",
+    "serverless:deploy": "sls deploy --stage $SLS_STAGE"
+  },
+  "keywords": [
+    "Serverless",
+    "Github Actions"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "node-fetch": "^2.6.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.14.8",
+    "@babel/core": "^7.14.8",
+    "@babel/preset-env": "^7.14.9",
+    "@babel/register": "^7.14.5",
+    "@kakkuk/serverless-aws-apigateway-documentation": "^1.1.7",
+    "jsdoc-to-markdown": "^7.0.1",
+    "serverless": "^2.52.1",
+    "serverless-reqvalidator-plugin": "^1.0.4",
+    "standard": "^16.0.3"
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/env",
+        {
+          "targets": {
+            "node": "current"
+          }
+        }
+      ]
+    ],
+    "sourceMaps": "inline"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "modulePaths": [
+      "./src"
+    ],
+    "setupFilesAfterEnv": [
+      "./src/jest.setup"
+    ],
+    "verbose": true,
+    "collectCoverage": true,
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "text-summary"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/__fixtures__/"
+    ]
+  }
+}
